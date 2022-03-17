@@ -1,0 +1,19 @@
+{
+  "name": "cryptobot",
+  "version": "1.0.0",
+  "description": "Crypto Bot for Discord",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "cryptobot"
+  ],
+  "author": "Rabbit Company LLC",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "discord.js": "^13.6.0",
+    "dotenv": "^16.0.0",
+    "ws": "^8.5.0"
+  }
+}
