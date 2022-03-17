@@ -1,5 +1,6 @@
 const Discord = require('discord.js');
 const WebSocket = require('ws');
+const fs = require('fs');
 require('dotenv').config();
 
 let cryptos = ['BTC','COMP','DOGE','EOS','LINK','MKR','STORJ','TRX','YFI','AAVE','ATOM','BAT','DASH','DOT','ETC','IOTA','MATIC','XEM','XRP','ZEC','ADA','BCH','EGLD','ETH','LTC','NEO','RVN','UNI','XLM','XTZ','ZIL','ALGO','AVAX','BNB','ENJ','FIL','LUNA','SOL','THETA','VET','XMR','ZRX'];
@@ -55,10 +56,23 @@ client.on('ready', () => {
           type: Discord.Constants.ApplicationCommandOptionTypes.SUB_COMMAND,
           options: [
             {
-              name: "amount",
-              description: "Calculate worth of your " + crypto,
+              name: 'amount',
+              description: 'Calculate worth of your ' + crypto,
               required: false,
               type: Discord.Constants.ApplicationCommandOptionTypes.NUMBER,
+            }
+          ]
+        },
+        {
+          name: 'set',
+          description: 'Set your own ' + crypto + ' address to accept donations.',
+          type: Discord.Constants.ApplicationCommandOptionTypes.SUB_COMMAND,
+          options: [
+            {
+              name: 'address',
+              description: 'Enter your own ' + crypto + ' address to accept donations',
+              required: true,
+              type: Discord.Constants.ApplicationCommandOptionTypes.STRING
             }
           ]
         }
@@ -106,6 +120,47 @@ client.on('interactionCreate', async interaction => {
     .setTimestamp(new Date());
 
     interaction.reply({ embeds: [ embed ], ephemeral: true });
+  }else if(action == 'set'){
+    let address = interaction.options.getString("address");
+    if(!(address.length >= 15 && address.length <= 128 && !address.includes(" "))){
+      const embed = new Discord.MessageEmbed()
+      .setColor("RED")
+      .setTitle("ERROR")
+      .setThumbnail("https://cryptobal.info/images/cryptos/" + crypto + ".png")
+      .setDescription("**Inputed " + crypto + " address is not valid!**")
+      .setTimestamp(new Date());
+
+      interaction.reply({ embeds: [ embed ], ephemeral: true });
+      return;
+    }
+
+    fs.readFile("users.json", 'utf-8', (err, data) => {
+      if(err != null){
+        const embed = new Discord.MessageEmbed()
+        .setColor("RED")
+        .setTitle("ERROR")
+        .setThumbnail("https://cryptobal.info/images/cryptos/" + crypto + ".png")
+        .setDescription("**Something went wrong. Please try again.**")
+        .setTimestamp(new Date());
+  
+        interaction.reply({ embeds: [ embed ], ephemeral: true });
+        return;
+      }
+
+      json = JSON.parse(data);
+      if(json[interaction.user.id] == null) json[interaction.user.id] = {};
+      json[interaction.user.id][crypto] = address;
+      fs.writeFile("users.json", JSON.stringify(json), 'utf-8', () => {
+        const embed = new Discord.MessageEmbed()
+        .setColor("GREEN")
+        .setTitle("SUCCESS")
+        .setThumbnail("https://cryptobal.info/images/cryptos/" + crypto + ".png")
+        .setDescription("**" + crypto + " donation address has been set successfully.**")
+        .setTimestamp(new Date());
+  
+        interaction.reply({ embeds: [ embed ], ephemeral: true });
+      });
+    });
   }
 });
 
@@ -115,14 +170,38 @@ client.on('interactionCreate', async interaction => {
   if(interaction.commandName != 'donate') return;
   let user = interaction.options.getUser("to");
 
-  const embed = new Discord.MessageEmbed()
+  let embed = new Discord.MessageEmbed()
   .setColor(user.hexAccentColor)
   .setTitle(user.username)
+  .setDescription("Those crypto addresses are owned by " + user.tag)
   .setThumbnail(user.avatarURL())
-  .setDescription("id: " + user.id)
   .setTimestamp(new Date());
 
-  interaction.reply({ embeds: [ embed ], ephemeral: true });
+  fs.readFile("users.json", 'utf-8', (err, data) => {
+    if(err != null){
+      const embed = new Discord.MessageEmbed()
+      .setColor("RED")
+      .setTitle("ERROR")
+      .setThumbnail("https://cryptobal.info/images/cryptos/" + crypto + ".png")
+      .setDescription("**Something went wrong. Please try again.**")
+      .setTimestamp(new Date());
+
+      interaction.reply({ embeds: [ embed ], ephemeral: true });
+      return;
+    }
+
+    json = JSON.parse(data);
+    if(json[user.id] != null){
+      Object.keys(json[user.id]).forEach(crypto => {
+        embed.addField(crypto, json[user.id][crypto], false);
+      });
+    }else{
+      embed.setDescription("User did not set their crypto addresses for donations. Make sure to remind him.");
+    }
+
+    interaction.reply({ embeds: [ embed ], ephemeral: true });
+  });
+
 });
 
 function startPriceFetcher(){
