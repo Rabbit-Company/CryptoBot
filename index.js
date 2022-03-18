@@ -9,7 +9,9 @@ var jsonPrices = {};
 var lastPrices = new Map();
 var prices = new Map();
 
-const client = new Discord.Client({ 
+var whitelist = [];
+
+const client = new Discord.Client({
 	intents: [
 		Discord.Intents.FLAGS.GUILDS,
 		Discord.Intents.FLAGS.GUILD_MESSAGES
@@ -17,9 +19,13 @@ const client = new Discord.Client({
 });
 
 client.on('ready', () => {
-  console.log(new Date().toLocaleString() + ` | Logged in as ${client.user.tag}`);
+  console.log(new Date().toLocaleString() + ` | INFO | Logged in as ${client.user.tag}`);
 
+  setPresence();
+  fetchWhiteList();
   startPriceFetcher();
+
+  startEveryMinuteTasks();
   startHourlyTasks();
   
   const guildID = "";
@@ -41,6 +47,39 @@ client.on('ready', () => {
         description: 'Display crypto addresses from a specific person.',
         required: true,
         type: Discord.Constants.ApplicationCommandOptionTypes.USER
+      }
+    ]
+  });
+
+  commands?.create({
+    name: 'whitelist',
+    description: 'Command outputs in whitelisted channels are visible to everyone.',
+    options: [
+      {
+        name: 'add',
+        description: 'Add channel to the whitelist.',
+        type: Discord.Constants.ApplicationCommandOptionTypes.SUB_COMMAND,
+        options: [
+          {
+            name: 'channel',
+            description: 'Add channel to the whitelist.',
+            required: true,
+            type: Discord.Constants.ApplicationCommandOptionTypes.CHANNEL
+          }
+        ]
+      },
+      {
+        name: 'remove',
+        description: 'Remove channel from the whitelist.',
+        type: Discord.Constants.ApplicationCommandOptionTypes.SUB_COMMAND,
+        options: [
+          {
+            name: 'channel',
+            description: 'Remove channel from the whitelist.',
+            required: true,
+            type: Discord.Constants.ApplicationCommandOptionTypes.CHANNEL
+          }
+        ]
       }
     ]
   });
@@ -111,7 +150,9 @@ client.on('interactionCreate', async interaction => {
       .setDescription(amount + " " + crypto + " = **$" + worth.toFixed(2) +"**")
       .setTimestamp(new Date());
 
-      interaction.reply({ embeds: [ embed ], ephemeral: true });
+      let jsonE = { embeds: [ embed ], ephemeral: true };
+      if(whitelist.includes(interaction.channel.id)) jsonE = { embeds: [ embed ], ephemeral: false };
+      interaction.reply(jsonE);
       return;
     }
 
@@ -125,7 +166,9 @@ client.on('interactionCreate', async interaction => {
     .setDescription("**$" + price +"**")
     .setTimestamp(new Date());
 
-    interaction.reply({ embeds: [ embed ], ephemeral: true });
+    let jsonE = { embeds: [ embed ], ephemeral: true };
+    if(whitelist.includes(interaction.channel.id)) jsonE = { embeds: [ embed ], ephemeral: false };
+    interaction.reply(jsonE);
   }else if(action == 'set'){
     let address = interaction.options.getString("address");
     if(!(address.length >= 15 && address.length <= 128 && !address.includes(" "))){
@@ -140,7 +183,7 @@ client.on('interactionCreate', async interaction => {
       return;
     }
 
-    fs.readFile("users.json", 'utf-8', (err, data) => {
+    fs.readFile("data/users.json", 'utf-8', (err, data) => {
       if(err != null){
         const embed = new Discord.MessageEmbed()
         .setColor("RED")
@@ -156,7 +199,7 @@ client.on('interactionCreate', async interaction => {
       json = JSON.parse(data);
       if(json[interaction.user.id] == null) json[interaction.user.id] = {};
       json[interaction.user.id][crypto] = address;
-      fs.writeFile("users.json", JSON.stringify(json), 'utf-8', () => {
+      fs.writeFile("data/users.json", JSON.stringify(json), 'utf-8', () => {
         const embed = new Discord.MessageEmbed()
         .setColor("GREEN")
         .setTitle("SUCCESS")
@@ -168,7 +211,7 @@ client.on('interactionCreate', async interaction => {
       });
     });
   }else if(action == 'remove'){
-    fs.readFile("users.json", 'utf-8', (err, data) => {
+    fs.readFile("data/users.json", 'utf-8', (err, data) => {
       if(err != null){
         const embed = new Discord.MessageEmbed()
         .setColor("RED")
@@ -195,7 +238,7 @@ client.on('interactionCreate', async interaction => {
       }
 
       delete json[interaction.user.id][crypto];
-      fs.writeFile("users.json", JSON.stringify(json), 'utf-8', () => {
+      fs.writeFile("data/users.json", JSON.stringify(json), 'utf-8', () => {
         const embed = new Discord.MessageEmbed()
         .setColor("GREEN")
         .setTitle("SUCCESS")
@@ -223,7 +266,7 @@ client.on('interactionCreate', async interaction => {
   .setThumbnail(user.avatarURL())
   .setTimestamp(new Date());
 
-  fs.readFile("users.json", 'utf-8', (err, data) => {
+  fs.readFile("data/users.json", 'utf-8', (err, data) => {
     if(err != null){
       const embed = new Discord.MessageEmbed()
       .setColor("RED")
@@ -232,7 +275,9 @@ client.on('interactionCreate', async interaction => {
       .setDescription("**Something went wrong. Please try again.**")
       .setTimestamp(new Date());
 
-      interaction.reply({ embeds: [ embed ], ephemeral: true });
+      let jsonE = { embeds: [ embed ], ephemeral: true };
+      if(whitelist.includes(interaction.channel.id)) jsonE = { embeds: [ embed ], ephemeral: false };
+      interaction.reply(jsonE);
       return;
     }
 
@@ -242,23 +287,140 @@ client.on('interactionCreate', async interaction => {
         embed.addField(crypto, json[user.id][crypto], false);
       });
     }else{
-      embed.setDescription("User did not set their crypto addresses for donations. Make sure to remind him.");
+      embed.setDescription("**" + user.tag + "** did not set their crypto addresses for donations. Make sure to remind him.");
     }
 
-    interaction.reply({ embeds: [ embed ], ephemeral: true });
+    let jsonE = { embeds: [ embed ], ephemeral: true };
+    if(whitelist.includes(interaction.channel.id)) jsonE = { embeds: [ embed ], ephemeral: false };
+    interaction.reply(jsonE);
   });
 
+});
+
+//Whitelist
+client.on('interactionCreate', async interaction => {
+  if(!interaction.isCommand()) return;
+  if(interaction.commandName != 'whitelist') return;
+  let action = interaction.options.getSubcommand();
+  if(action == 'add'){
+    let channel = interaction.options.getChannel('channel');
+    if(!interaction.member.permissionsIn(channel).has('ADMINISTRATOR')){
+      const embed = new Discord.MessageEmbed()
+      .setColor("RED")
+      .setTitle("ERROR")
+      .setThumbnail("https://cryptobal.info/images/logo.png")
+      .setDescription("**You don't have permission to add this channel to the whitelist.**")
+      .setTimestamp(new Date());
+
+      interaction.reply({ embeds: [ embed ], ephemeral: true });
+      return;
+    }
+
+    if(whitelist.includes(channel.id)){
+      const embed = new Discord.MessageEmbed()
+      .setColor("YELLOW")
+      .setTitle("INFO")
+      .setThumbnail("https://cryptobal.info/images/logo.png")
+      .setDescription("**This channel is already on the whitelist.**")
+      .setTimestamp(new Date());
+
+      interaction.reply({ embeds: [ embed ], ephemeral: true });
+      return;
+    }
+
+    fs.readFile("data/whitelist.json", 'utf-8', (err, data) => {
+      if(err != null){
+        const embed = new Discord.MessageEmbed()
+        .setColor("RED")
+        .setTitle("ERROR")
+        .setThumbnail("https://cryptobal.info/images/logo.png")
+        .setDescription("**Something went wrong. Please try again.**")
+        .setTimestamp(new Date());
+  
+        interaction.reply({ embeds: [ embed ], ephemeral: true });
+        return;
+      }
+
+      whitelist = JSON.parse(data);
+      whitelist.push(channel.id);
+
+      fs.writeFile("data/whitelist.json", JSON.stringify(whitelist), 'utf-8', () => {
+        const embed = new Discord.MessageEmbed()
+        .setColor("GREEN")
+        .setTitle("SUCCESS")
+        .setThumbnail("https://cryptobal.info/images/logo.png")
+        .setDescription("**Channel has been whitelisted successfully.**")
+        .setTimestamp(new Date());
+  
+        interaction.reply({ embeds: [ embed ], ephemeral: true });
+      });
+    });
+
+  }else if(action == 'remove'){
+    let channel = interaction.options.getChannel('channel');
+    if(!interaction.member.permissionsIn(channel).has('ADMINISTRATOR')){
+      const embed = new Discord.MessageEmbed()
+      .setColor("RED")
+      .setTitle("ERROR")
+      .setThumbnail("https://cryptobal.info/images/logo.png")
+      .setDescription("**You don't have permission to remove this channel from the whitelist.**")
+      .setTimestamp(new Date());
+
+      interaction.reply({ embeds: [ embed ], ephemeral: true });
+      return;
+    }
+
+    if(!whitelist.includes(channel.id)){
+      const embed = new Discord.MessageEmbed()
+      .setColor("YELLOW")
+      .setTitle("INFO")
+      .setThumbnail("https://cryptobal.info/images/logo.png")
+      .setDescription("**This channel is not on the whitelist.**")
+      .setTimestamp(new Date());
+
+      interaction.reply({ embeds: [ embed ], ephemeral: true });
+      return;
+    }
+
+    fs.readFile("data/whitelist.json", 'utf-8', (err, data) => {
+      if(err != null){
+        const embed = new Discord.MessageEmbed()
+        .setColor("RED")
+        .setTitle("ERROR")
+        .setThumbnail("https://cryptobal.info/images/logo.png")
+        .setDescription("**Something went wrong. Please try again.**")
+        .setTimestamp(new Date());
+  
+        interaction.reply({ embeds: [ embed ], ephemeral: true });
+        return;
+      }
+
+      const index = whitelist.indexOf(channel.id);
+      if (index > -1) whitelist.splice(index, 1);
+
+      fs.writeFile("data/whitelist.json", JSON.stringify(whitelist), 'utf-8', () => {
+        const embed = new Discord.MessageEmbed()
+        .setColor("GREEN")
+        .setTitle("SUCCESS")
+        .setThumbnail("https://cryptobal.info/images/logo.png")
+        .setDescription("**Channel has been removed from whitelist successfully.**")
+        .setTimestamp(new Date());
+  
+        interaction.reply({ embeds: [ embed ], ephemeral: true });
+      });
+    });
+  }
 });
 
 function startPriceFetcher(){
   const socket = new WebSocket('wss://fstream.binance.com/ws/!markPrice@arr');
 
   socket.on('open', () => {
-    console.log(new Date().toLocaleString() + " | WebSocket oppened");
+    console.log(new Date().toLocaleString() + " | INFO | WebSocket oppened");
   });
 
   socket.on('close', () => {
-    console.log(new Date().toLocaleString() + " | WebSocket closed");
+    console.log(new Date().toLocaleString() + " | INFO | WebSocket closed");
     startPriceFetcher();
   });
 
@@ -276,10 +438,30 @@ function startPriceFetcher(){
   });
 }
 
+function fetchWhiteList(){
+  fs.readFile("data/whitelist.json", 'utf-8', (err, data) => {
+    if(err != null){
+      console.log(new Date().toLocaleString() + " | ERROR | Fetching data from whitelist.json");
+      return;
+    }
+    whitelist = JSON.parse(data);
+  });
+}
+
+function setPresence(){
+  client.user.setPresence({ status: 'online', activities: [{ name: client.guilds.cache.size + " servers", type: "WATCHING" }] });
+}
+
+function startEveryMinuteTasks(){
+  setInterval(() => {
+    fetchWhiteList();
+  }, 60000);
+}
+
 function startHourlyTasks(){
   setInterval(() => {
-    client.user.setPresence({ status: 'online', activities: [{ name: client.guilds.cache.size + " servers", type: "WATCHING" }] });
-    console.log(new Date().toLocaleString() + " | Hourly tasks executed");
+    setPresence();
+    console.log(new Date().toLocaleString() + " | INFO | Hourly tasks executed");
   }, 3600000);
 }
 
