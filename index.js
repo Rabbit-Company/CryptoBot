@@ -21,7 +21,7 @@ client.on('ready', () => {
 
   startPriceFetcher();
   
-  const guildID = "954118145872896090";
+  const guildID = "";
   const guild = client.guilds.cache.get(guildID);
   let commands;
 
@@ -70,11 +70,16 @@ client.on('ready', () => {
           options: [
             {
               name: 'address',
-              description: 'Enter your own ' + crypto + ' address to accept donations',
+              description: 'Enter your own ' + crypto + ' address to accept donations.',
               required: true,
               type: Discord.Constants.ApplicationCommandOptionTypes.STRING
             }
           ]
+        },
+        {
+          name: 'remove',
+          description: 'Remove your ' + crypto + ' address from donations.',
+          type: Discord.Constants.ApplicationCommandOptionTypes.SUB_COMMAND
         }
       ]
     });
@@ -160,6 +165,46 @@ client.on('interactionCreate', async interaction => {
   
         interaction.reply({ embeds: [ embed ], ephemeral: true });
       });
+    });
+  }else if(action == 'remove'){
+    fs.readFile("users.json", 'utf-8', (err, data) => {
+      if(err != null){
+        const embed = new Discord.MessageEmbed()
+        .setColor("RED")
+        .setTitle("ERROR")
+        .setThumbnail("https://cryptobal.info/images/cryptos/" + crypto + ".png")
+        .setDescription("**Something went wrong. Please try again.**")
+        .setTimestamp(new Date());
+  
+        interaction.reply({ embeds: [ embed ], ephemeral: true });
+        return;
+      }
+
+      json = JSON.parse(data);
+      if(json[interaction.user.id] == null || json[interaction.user.id][crypto] == null){
+        const embed = new Discord.MessageEmbed()
+        .setColor("YELLOW")
+        .setTitle("No action required")
+        .setThumbnail("https://cryptobal.info/images/cryptos/" + crypto + ".png")
+        .setDescription("**" + crypto + " address for donations has already been removed.**")
+        .setTimestamp(new Date());
+  
+        interaction.reply({ embeds: [ embed ], ephemeral: true });
+        return;
+      }
+
+      delete json[interaction.user.id][crypto];
+      fs.writeFile("users.json", JSON.stringify(json), 'utf-8', () => {
+        const embed = new Discord.MessageEmbed()
+        .setColor("GREEN")
+        .setTitle("SUCCESS")
+        .setThumbnail("https://cryptobal.info/images/cryptos/" + crypto + ".png")
+        .setDescription("**" + crypto + " donation address has been removed successfully.**")
+        .setTimestamp(new Date());
+  
+        interaction.reply({ embeds: [ embed ], ephemeral: true });
+      });
+
     });
   }
 });
