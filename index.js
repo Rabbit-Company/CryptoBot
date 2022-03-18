@@ -13,13 +13,14 @@ const client = new Discord.Client({
 	intents: [
 		Discord.Intents.FLAGS.GUILDS,
 		Discord.Intents.FLAGS.GUILD_MESSAGES
-	] 
+	]
 });
 
 client.on('ready', () => {
-  console.log(`Logged in as ${client.user.tag}`);
+  console.log(new Date().toLocaleString() + ` | Logged in as ${client.user.tag}`);
 
   startPriceFetcher();
+  startHourlyTasks();
   
   const guildID = "";
   const guild = client.guilds.cache.get(guildID);
@@ -253,11 +254,11 @@ function startPriceFetcher(){
   const socket = new WebSocket('wss://fstream.binance.com/ws/!markPrice@arr');
 
   socket.on('open', () => {
-    console.log("WebSocket oppened at " + new Date().toLocaleString());
+    console.log(new Date().toLocaleString() + " | WebSocket oppened");
   });
 
   socket.on('close', () => {
-    console.log("WebSocket closed at " + new Date().toLocaleString());
+    console.log(new Date().toLocaleString() + " | WebSocket closed");
     startPriceFetcher();
   });
 
@@ -273,6 +274,13 @@ function startPriceFetcher(){
       }
     });
   });
+}
+
+function startHourlyTasks(){
+  setInterval(() => {
+    client.user.setPresence({ status: 'online', activities: [{ name: client.guilds.cache.size + " servers", type: "WATCHING" }] });
+    console.log(new Date().toLocaleString() + " | Hourly tasks executed");
+  }, 3600000);
 }
 
 client.login(process.env.token);
