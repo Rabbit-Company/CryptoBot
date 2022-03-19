@@ -39,6 +39,11 @@ client.on('ready', () => {
   }
 
   commands?.create({
+    name: 'help',
+    description: 'Show all commands.'
+  });
+
+  commands?.create({
     name: 'donate',
     description: 'Show crypto addresses from your friends for a donation.',
     options: [
@@ -125,6 +130,30 @@ client.on('ready', () => {
     });
   });
   
+});
+
+//Help
+client.on('interactionCreate', async interaction => {
+  if(!interaction.isCommand()) return;
+  if(interaction.commandName != 'help') return;
+
+  const embed = new Discord.MessageEmbed()
+  .setColor("ORANGE")
+  .setTitle("CryptoBot Help")
+  .setThumbnail("https://cryptobal.info/images/logo.png")
+  .setURL("https://cryptobal.info")
+  .addField("/[crypto] price", "Show price of specific crypto", false)
+  .addField("/[crypto] price [amount]", "Show price of specific amount of crypto", false)
+  .addField("/[crypto] set [address]", "Set crypto address in donation list", false)
+  .addField("/[crypto] remove", "Remove crypto address from donation list", false)
+  .addField("/donate [user]", "Show donation list from specific user", false)
+  .addField("/whitelist add [channel]", "Add channel to the whitelist", false)
+  .addField("/whitelist remove [channel]", "Remove channel from the whitelist", false)
+  .setTimestamp(new Date());
+
+  let jsonE = { embeds: [ embed ], ephemeral: true };
+  if(whitelist.includes(interaction.channel.id)) jsonE = { embeds: [ embed ], ephemeral: false };
+  interaction.reply(jsonE);
 });
 
 //Cryptos
