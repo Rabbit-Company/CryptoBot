@@ -102,9 +102,15 @@ client.on('ready', () => {
           options: [
             {
               name: 'amount',
-              description: 'Calculate worth of your ' + crypto,
+              description: 'Calculate how many dollars you get from ' + crypto,
               required: false,
-              type: Discord.Constants.ApplicationCommandOptionTypes.NUMBER,
+              type: Discord.Constants.ApplicationCommandOptionTypes.NUMBER
+            },
+            {
+              name: 'dollars',
+              description: 'Calculate how many ' + crypto + ' you get from dollars.',
+              required: false,
+              type: Discord.Constants.ApplicationCommandOptionTypes.NUMBER
             }
           ]
         },
@@ -166,6 +172,7 @@ client.on('interactionCreate', async interaction => {
   if(action == 'price'){
     let price = parseFloat(prices.get(crypto));
     let amount = interaction.options.getNumber("amount");
+    let dollars = interaction.options.getNumber("dollars");
 
     if(typeof amount === 'number'){
       let worth = amount * price;
@@ -177,6 +184,21 @@ client.on('interactionCreate', async interaction => {
       .setThumbnail("https://cryptobal.info/images/cryptos/" + crypto + ".png")
       .setURL("https://cryptobal.info")
       .setDescription(amount + " " + crypto + " = **$" + worth.toFixed(2) +"**")
+      .setTimestamp(new Date());
+
+      let jsonE = { embeds: [ embed ], ephemeral: true };
+      if(whitelist.includes(interaction.channel.id)) jsonE = { embeds: [ embed ], ephemeral: false };
+      interaction.reply(jsonE);
+      return;
+    }else if(typeof dollars === 'number'){
+      let total = (1.0 / price) * dollars;
+
+      const embed = new Discord.MessageEmbed()
+      .setColor("ORANGE")
+      .setTitle(crypto + " calculator")
+      .setThumbnail("https://cryptobal.info/images/cryptos/" + crypto + ".png")
+      .setURL("https://cryptobal.info")
+      .setDescription("$" + dollars.toFixed(2) + " = **" + parseFloat(total.toFixed(8)) + " " + crypto + "**")
       .setTimestamp(new Date());
 
       let jsonE = { embeds: [ embed ], ephemeral: true };
