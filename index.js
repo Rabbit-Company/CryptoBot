@@ -161,6 +161,7 @@ client.on('interactionCreate', async interaction => {
   .addField("/donate [user]", "Show donation list from specific user", false)
   .addField("/whitelist add [channel]", "Add channel to the whitelist", false)
   .addField("/whitelist remove [channel]", "Remove channel from the whitelist", false)
+  .addField("/vote", "Support the bot with daily voting.", false)
   .setTimestamp(new Date());
 
   let jsonE = { embeds: [ embed ], ephemeral: true };
