@@ -1,6 +1,7 @@
 const Discord = require('discord.js');
 const WebSocket = require('ws');
 const fs = require('fs');
+const fetch = require('node-fetch');
 require('dotenv').config();
 
 let cryptos = ['BTC','COMP','DOGE','EOS','LINK','MKR','STORJ','TRX','YFI','AAVE','ATOM','BAT','DASH','DOT','ETC','IOTA','MATIC','XEM','XRP','ZEC','ADA','BCH','EGLD','ETH','LTC','NEO','RVN','UNI','XLM','XTZ','ZIL','ALGO','AVAX','BNB','ENJ','FIL','LUNA','SOL','THETA','VET','XMR','ZRX'];
@@ -41,6 +42,11 @@ client.on('ready', () => {
   commands?.create({
     name: 'help',
     description: 'Show all commands.'
+  });
+
+  commands?.create({
+    name: 'vote',
+    description: 'Support the bot with daily voting.'
   });
 
   commands?.create({
@@ -155,6 +161,27 @@ client.on('interactionCreate', async interaction => {
   .addField("/donate [user]", "Show donation list from specific user", false)
   .addField("/whitelist add [channel]", "Add channel to the whitelist", false)
   .addField("/whitelist remove [channel]", "Remove channel from the whitelist", false)
+  .setTimestamp(new Date());
+
+  let jsonE = { embeds: [ embed ], ephemeral: true };
+  if(whitelist.includes(interaction.channel.id)) jsonE = { embeds: [ embed ], ephemeral: false };
+  interaction.reply(jsonE);
+});
+
+//Vote
+client.on('interactionCreate', async interaction => {
+  if(!interaction.isCommand()) return;
+  if(interaction.commandName != 'vote') return;
+
+  const embed = new Discord.MessageEmbed()
+  .setColor("ORANGE")
+  .setTitle("CryptoBot Vote")
+  .setDescription("Support the bot with daily voting.")
+  .setThumbnail("https://cryptobal.info/images/logo.png")
+  .setURL("https://cryptobal.info")
+  .addField("TOP GG", "https://top.gg/bot/953953187394617354/vote", false)
+  .addField("Discords", "https://discords.com/bots/bot/953953187394617354/vote", false)
+  .addField("Discord Bot List", "https://discordbotlist.com/bots/cryptobot-6053/upvote", false)
   .setTimestamp(new Date());
 
   let jsonE = { embeds: [ embed ], ephemeral: true };
@@ -508,6 +535,39 @@ function write(type, message){
   console.log(date + " | " + type + " | " + message);
 }
 
+function updateVotingSites(){
+  const params = new URLSearchParams();
+  params.append('server_count', client.guilds.cache.size);
+
+  fetch('https://top.gg/api/bots/' + client.user.id + "/stats", {
+    method: 'POST',
+    headers: {
+      'Authorization': process.env.token_topgg
+    },
+    body: params
+  });
+
+  fetch('https://discords.com/bots/api/bot/' + client.user.id, {
+    method: 'POST',
+    headers: {
+      'Authorization': process.env.token_discords
+    },
+    body: params
+  });
+
+  const params2 = new URLSearchParams();
+  params2.append('guilds', client.guilds.cache.size);
+  params2.append('users', client.users.cache.size);
+
+  fetch('https://discordbotlist.com/api/v1/bots/' + client.user.id + "/stats", {
+    method: 'POST',
+    headers: {
+      'Authorization': process.env.token_discordbotlist
+    },
+    body: params2
+  });
+}
+
 function startEveryMinuteTasks(){
   setInterval(() => {
     fetchWhiteList();
@@ -517,6 +577,7 @@ function startEveryMinuteTasks(){
 function startHourlyTasks(){
   setInterval(() => {
     setPresence();
+    updateVotingSites();
     write("INFO", "Hourly tasks executed");
   }, 3600000);
 }
