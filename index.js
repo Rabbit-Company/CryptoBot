@@ -50,6 +50,11 @@ client.on('ready', () => {
   });
 
   commands?.create({
+    name: 'privacy',
+    description: 'Show Privacy Policy'
+  });
+
+  commands?.create({
     name: 'donate',
     description: 'Show crypto addresses from your friends for a donation.',
     options: [
@@ -163,6 +168,7 @@ client.on('interactionCreate', async interaction => {
   .addField("/whitelist add [channel]", "Add channel to the whitelist", false)
   .addField("/whitelist remove [channel]", "Remove channel from the whitelist", false)
   .addField("/vote", "Support the bot with daily voting", false)
+  .addField("/privacy", "Show Privacy Policy", false)
   .setTimestamp(new Date());
 
   let jsonE = { embeds: [ embed ], ephemeral: true };
@@ -184,6 +190,30 @@ client.on('interactionCreate', async interaction => {
   .addField("TOP GG", "https://top.gg/bot/953953187394617354/vote", false)
   .addField("Discord Bot List", "https://discordbotlist.com/bots/cryptobot-6053/upvote", false)
   .addField("Discords", "https://discords.com/bots/bot/953953187394617354/vote", false)
+  .setTimestamp(new Date());
+
+  let jsonE = { embeds: [ embed ], ephemeral: true };
+  if(whitelist.includes(interaction.channel.id)) jsonE = { embeds: [ embed ], ephemeral: false };
+  interaction.reply(jsonE);
+});
+
+//Privacy Policy
+client.on('interactionCreate', async interaction => {
+  if(!interaction.isCommand()) return;
+  if(interaction.commandName != 'privacy') return;
+
+  const embed = new Discord.MessageEmbed()
+  .setColor("ORANGE")
+  .setTitle("CryptoBot Privacy Policy")
+  .setDescription("We at Rabbit Company LLC, highly prioritize user's privacy.")
+  .setThumbnail("https://cryptobal.info/images/logo.png")
+  .setURL("https://cryptobal.info")
+  .addField("What data does CryptoBot collect?", "CryptoBot does only collects your user id and manually submitted crypto addresses.", false)
+  .addField("Why do we collect data?", "By default we don't collect any data. If the user wants to create their own donation list, provided crypto addresses and user IDs (as identifiers) would be stored on our servers.", false)
+  .addField("How do we use collected data?", "Data is used for the creation of donation lists.", false)
+  .addField("Who does hold / have access to collected data?", "Discord and Rabbit Hosting (Our hosting company).", false)
+  .addField("How can users contact us, if they have any concerns about the bot?", "Thru Email: info@rabbit-company.com or Discord: https://discord.rabbit-company.com", false)
+  .addField("How can users remove collected data?", "Collected data can be removed with provided commands or by contacting us.", false)
   .setTimestamp(new Date());
 
   let jsonE = { embeds: [ embed ], ephemeral: true };
