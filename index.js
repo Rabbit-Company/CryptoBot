@@ -182,8 +182,8 @@ client.on('interactionCreate', async interaction => {
   .setThumbnail("https://cryptobal.info/images/logo.png")
   .setURL("https://cryptobal.info")
   .addField("TOP GG", "https://top.gg/bot/953953187394617354/vote", false)
-  .addField("Discords", "https://discords.com/bots/bot/953953187394617354/vote", false)
   .addField("Discord Bot List", "https://discordbotlist.com/bots/cryptobot-6053/upvote", false)
+  .addField("Discords", "https://discords.com/bots/bot/953953187394617354/vote", false)
   .setTimestamp(new Date());
 
   let jsonE = { embeds: [ embed ], ephemeral: true };
