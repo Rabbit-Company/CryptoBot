@@ -46,7 +46,7 @@ client.on('ready', () => {
 
   commands?.create({
     name: 'vote',
-    description: 'Support the bot with daily voting.'
+    description: 'Support the bot with daily voting'
   });
 
   commands?.create({
@@ -108,13 +108,13 @@ client.on('ready', () => {
           options: [
             {
               name: 'amount',
-              description: 'Calculate how many dollars you get from ' + crypto,
+              description: 'Calculate how many dollars you get from a specific amount of ' + crypto + ' assets',
               required: false,
               type: Discord.Constants.ApplicationCommandOptionTypes.NUMBER
             },
             {
               name: 'dollars',
-              description: 'Calculate how many ' + crypto + ' you get from dollars.',
+              description: 'Calculate how many ' + crypto + ' assets you get from a specific amount of dollars',
               required: false,
               type: Discord.Constants.ApplicationCommandOptionTypes.NUMBER
             }
@@ -154,14 +154,15 @@ client.on('interactionCreate', async interaction => {
   .setTitle("CryptoBot Help")
   .setThumbnail("https://cryptobal.info/images/logo.png")
   .setURL("https://cryptobal.info")
-  .addField("/[crypto] price", "Show price of specific crypto", false)
-  .addField("/[crypto] price [amount]", "Show price of specific amount of crypto", false)
+  .addField("/[crypto] price", "Show price of a specific crypto", false)
+  .addField("/[crypto] price [amount]", "Calculate how many dollars you get from a specific amount of crypto assets", false)
+  .addField("/[crypto] price [dollars]", "Calculate how many crypto assets you get from a specific amount of dollars", false)
   .addField("/[crypto] set [address]", "Set crypto address in donation list", false)
-  .addField("/[crypto] remove", "Remove crypto address from donation list", false)
-  .addField("/donate [user]", "Show donation list from specific user", false)
+  .addField("/[crypto] remove", "Remove crypto address from the donation list", false)
+  .addField("/donate [user]", "Show donation list from a specific user", false)
   .addField("/whitelist add [channel]", "Add channel to the whitelist", false)
   .addField("/whitelist remove [channel]", "Remove channel from the whitelist", false)
-  .addField("/vote", "Support the bot with daily voting.", false)
+  .addField("/vote", "Support the bot with daily voting", false)
   .setTimestamp(new Date());
 
   let jsonE = { embeds: [ embed ], ephemeral: true };
