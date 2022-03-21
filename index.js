@@ -19,7 +19,7 @@ const client = new Discord.Client({
 });
 
 client.on('ready', () => {
-  console.log(new Date().toLocaleString() + ` | INFO | Logged in as ${client.user.tag}`);
+  write("INFO", "Logged in as " + client.user.tag);
 
   setPresence();
   fetchWhiteList();
@@ -467,11 +467,11 @@ function startPriceFetcher(){
   const socket = new WebSocket('wss://fstream.binance.com/ws/!markPrice@arr');
 
   socket.on('open', () => {
-    console.log(new Date().toLocaleString() + " | INFO | WebSocket oppened");
+    write("INFO", "WebSocket oppened");
   });
 
   socket.on('close', () => {
-    console.log(new Date().toLocaleString() + " | INFO | WebSocket closed");
+    write("INFO", "WebSocket closed");
     startPriceFetcher();
   });
 
@@ -492,7 +492,7 @@ function startPriceFetcher(){
 function fetchWhiteList(){
   fs.readFile("data/whitelist.json", 'utf-8', (err, data) => {
     if(err != null){
-      console.log(new Date().toLocaleString() + " | ERROR | Fetching data from whitelist.json");
+      write("ERROR", "Fetching data from whitelist.json");
       return;
     }
     whitelist = JSON.parse(data);
@@ -501,6 +501,11 @@ function fetchWhiteList(){
 
 function setPresence(){
   client.user.setPresence({ status: 'online', activities: [{ name: client.guilds.cache.size + " servers", type: "WATCHING" }] });
+}
+
+function write(type, message){
+  let date = new Date().toLocaleDateString('en-GB', { hour12: false, day: '2-digit', month: '2-digit', year: 'numeric', minute: '2-digit', hour: '2-digit', second: '2-digit' }).replaceAll("/",".").replaceAll(",", " |");
+  console.log(date + " | " + type + " | " + message);
 }
 
 function startEveryMinuteTasks(){
@@ -512,7 +517,7 @@ function startEveryMinuteTasks(){
 function startHourlyTasks(){
   setInterval(() => {
     setPresence();
-    console.log(new Date().toLocaleString() + " | INFO | Hourly tasks executed");
+    write("INFO", "Hourly tasks executed");
   }, 3600000);
 }
 
