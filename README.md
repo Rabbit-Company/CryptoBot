@@ -19,3 +19,5 @@ Commands:
 - /whitelist remove [channel] - Remove channel from the whitelist
 - /vote - Support the bot with daily voting
 - /privacy - Show Privacy Policy
+
+![CryptoBot](https://i.imgur.com/6ZkiNFw.png)
