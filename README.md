@@ -10,9 +10,12 @@ BTC,  COMP,  DOGE,  EOS,  LINK,  MKR,  STORJ,  TRX,  YFI,  AAVE,  ATOM,  BAT,  D
 Commands:
 - /help - Show all commands
 - /[crypto] price - Show price of specific crypto
-- /[crypto] price [amount] - Show price of specific amount of crypto
+- /[crypto] price [amount] - Calculate how many dollars you get from a specific amount of crypto assets
+- /[crypto] price [dollars] - Calculate how many crypto assets you get from a specific amount of dollars
 - /[crypto] set [address] - Set crypto address in donation list
-- /[crypto] remove - Remove crypto address from donation list
-- /donate [user] - Show donation list from specific user
+- /[crypto] remove - Remove crypto address from the donation list
+- /donate [user] - Show donation list from a specific user
 - /whitelist add [channel] - Add channel to the whitelist
 - /whitelist remove [channel] - Remove channel from the whitelist
+- /vote - Support the bot with daily voting
+- /privacy - Show Privacy Policy
