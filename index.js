@@ -190,6 +190,7 @@ client.on('interactionCreate', async interaction => {
   .addField("TOP GG", "https://top.gg/bot/953953187394617354/vote", false)
   .addField("Discord Bot List", "https://discordbotlist.com/bots/cryptobot-6053/upvote", false)
   .addField("Discords", "https://discords.com/bots/bot/953953187394617354/vote", false)
+  .addField("Discord Extreme List", "https://discordextremelist.xyz/en-US/bots/cryptobot", false)
   .setTimestamp(new Date());
 
   let jsonE = { embeds: [ embed ], ephemeral: true };
@@ -597,6 +598,19 @@ function updateVotingSites(){
       'Authorization': process.env.token_discordbotlist
     },
     body: params2
+  });
+
+  const params3 = {
+    "guildCount": client.guilds.cache.size
+  }
+
+  fetch('https://api.discordextremelist.xyz/v2/bot/' + client.user.id + "/stats", {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': process.env.token_discordextremelist
+    },
+    body: JSON.stringify(params3)
   });
 }
 
