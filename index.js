@@ -10,6 +10,11 @@ var jsonPrices = {};
 var lastPrices = new Map();
 var prices = new Map();
 
+var fiat = {
+  "EUR": 1.10,
+  "GBP": 1.31
+}
+
 var whitelist = [];
 
 const client = new Discord.Client({
@@ -28,7 +33,7 @@ client.on('ready', () => {
 
   startEveryMinuteTasks();
   startHourlyTasks();
-  
+
   const guildID = "";
   const guild = client.guilds.cache.get(guildID);
   let commands;
@@ -118,8 +123,20 @@ client.on('ready', () => {
               type: Discord.Constants.ApplicationCommandOptionTypes.NUMBER
             },
             {
-              name: 'dollars',
-              description: 'Calculate how many ' + crypto + ' assets you get from a specific amount of dollars',
+              name: 'usd',
+              description: 'Calculate how many ' + crypto + ' assets you get from a specific amount of US Dollars',
+              required: false,
+              type: Discord.Constants.ApplicationCommandOptionTypes.NUMBER
+            },
+            {
+              name: 'eur',
+              description: 'Calculate how many ' + crypto + ' assets you get from a specific amount of Euros',
+              required: false,
+              type: Discord.Constants.ApplicationCommandOptionTypes.NUMBER
+            },
+            {
+              name: 'gbp',
+              description: 'Calculate how many ' + crypto + ' assets you get from a specific amount of British Pounds',
               required: false,
               type: Discord.Constants.ApplicationCommandOptionTypes.NUMBER
             }
@@ -161,7 +178,7 @@ client.on('interactionCreate', async interaction => {
   .setURL("https://cryptobal.info")
   .addField("/[crypto] price", "Show price of a specific crypto", false)
   .addField("/[crypto] price [amount]", "Calculate how many dollars you get from a specific amount of crypto assets", false)
-  .addField("/[crypto] price [dollars]", "Calculate how many crypto assets you get from a specific amount of dollars", false)
+  .addField("/[crypto] price [usd/eur/gbp]", "Calculate how many crypto assets you get from a specific amount of choosen currency", false)
   .addField("/[crypto] set [address]", "Set crypto address in donation list", false)
   .addField("/[crypto] remove", "Remove crypto address from the donation list", false)
   .addField("/donate [user]", "Show donation list from a specific user", false)
@@ -232,7 +249,9 @@ client.on('interactionCreate', async interaction => {
   if(action == 'price'){
     let price = parseFloat(prices.get(crypto));
     let amount = interaction.options.getNumber("amount");
-    let dollars = interaction.options.getNumber("dollars");
+    let usd = interaction.options.getNumber("usd");
+    let eur = interaction.options.getNumber("eur");
+    let gbp = interaction.options.getNumber("gbp");
 
     if(typeof amount === 'number'){
       let worth = amount * price;
@@ -250,15 +269,45 @@ client.on('interactionCreate', async interaction => {
       if(whitelist.includes(interaction.channel.id)) jsonE = { embeds: [ embed ], ephemeral: false };
       interaction.reply(jsonE);
       return;
-    }else if(typeof dollars === 'number'){
-      let total = (1.0 / price) * dollars;
+    }else if(typeof usd === 'number'){
+      let total = (1.0 / price) * usd;
 
       const embed = new Discord.MessageEmbed()
       .setColor("ORANGE")
       .setTitle(crypto + " calculator")
       .setThumbnail("https://cryptobal.info/images/cryptos/" + crypto + ".png")
       .setURL("https://cryptobal.info")
-      .setDescription("$" + dollars.toFixed(2) + " = **" + parseFloat(total.toFixed(8)) + " " + crypto + "**")
+      .setDescription("$" + usd.toFixed(2) + " = **" + parseFloat(total.toFixed(8)) + " " + crypto + "**")
+      .setTimestamp(new Date());
+
+      let jsonE = { embeds: [ embed ], ephemeral: true };
+      if(whitelist.includes(interaction.channel.id)) jsonE = { embeds: [ embed ], ephemeral: false };
+      interaction.reply(jsonE);
+      return;
+    }else if(typeof eur === 'number'){
+      let total = (1.0 / price) * eur * fiat.EUR;
+
+      const embed = new Discord.MessageEmbed()
+      .setColor("ORANGE")
+      .setTitle(crypto + " calculator")
+      .setThumbnail("https://cryptobal.info/images/cryptos/" + crypto + ".png")
+      .setURL("https://cryptobal.info")
+      .setDescription(eur.toFixed(2) + "€ = **" + parseFloat(total.toFixed(8)) + " " + crypto + "**")
+      .setTimestamp(new Date());
+
+      let jsonE = { embeds: [ embed ], ephemeral: true };
+      if(whitelist.includes(interaction.channel.id)) jsonE = { embeds: [ embed ], ephemeral: false };
+      interaction.reply(jsonE);
+      return;
+    }else if(typeof gbp === 'number'){
+      let total = (1.0 / price) * gbp * fiat.GBP;
+
+      const embed = new Discord.MessageEmbed()
+      .setColor("ORANGE")
+      .setTitle(crypto + " calculator")
+      .setThumbnail("https://cryptobal.info/images/cryptos/" + crypto + ".png")
+      .setURL("https://cryptobal.info")
+      .setDescription("£" + gbp.toFixed(2) + " = **" + parseFloat(total.toFixed(8)) + " " + crypto + "**")
       .setTimestamp(new Date());
 
       let jsonE = { embeds: [ embed ], ephemeral: true };
@@ -559,6 +608,18 @@ function fetchWhiteList(){
   });
 }
 
+function fetchFiatRates(){
+  for(let i = 0; i < Object.keys(fiat).length; i++){
+    let currency = Object.keys(fiat)[i];
+    for(let j = 0; j < jsonPrices.length; j++){
+      let symbol = currency + "USDT";
+      let symbol2 = jsonPrices[i].s;
+      if(symbol != symbol2) continue;
+      fiat[currency] = jsonPrices[i].p;
+    }
+  }
+}
+
 function setPresence(){
   client.user.setPresence({ status: 'online', activities: [{ name: client.guilds.cache.size + " servers", type: "WATCHING" }] });
 }
@@ -600,9 +661,7 @@ function updateVotingSites(){
     body: params2
   });
 
-  const params3 = {
-    "guildCount": client.guilds.cache.size
-  }
+  const params3 = { "guildCount": client.guilds.cache.size }
 
   fetch('https://api.discordextremelist.xyz/v2/bot/' + client.user.id + "/stats", {
     method: 'POST',
@@ -623,6 +682,7 @@ function startEveryMinuteTasks(){
 function startHourlyTasks(){
   setInterval(() => {
     setPresence();
+    fetchFiatRates();
     updateVotingSites();
     write("INFO", "Hourly tasks executed");
   }, 3600000);
