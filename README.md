@@ -12,7 +12,7 @@ BTC,  COMP,  DOGE,  EOS,  LINK,  MKR,  STORJ,  TRX,  YFI,  AAVE,  ATOM,  BAT,  D
 - /help - Show all commands
 - /[crypto] price - Show price of specific crypto
 - /[crypto] price [amount] - Calculate how many dollars you get from a specific amount of crypto assets
-- /[crypto] price [dollars] - Calculate how many crypto assets you get from a specific amount of dollars
+- /[crypto] price [usd/eur/gbp] - Calculate how many crypto assets you get from a specific amount of choosen currency
 - /[crypto] set [address] - Set crypto address in donation list
 - /[crypto] remove - Remove crypto address from the donation list
 - /donate [user] - Show donation list from a specific user
