@@ -15,6 +15,21 @@ var fiat = {
   "GBP": 1.31
 }
 
+let dollarUS = Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+});
+
+let euroGerman = Intl.NumberFormat("de-DE", {
+  style: "currency",
+  currency: "EUR",
+});
+
+let britishPound = Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "GBP",
+});
+
 var whitelist = [];
 
 const client = new Discord.Client({
@@ -254,14 +269,13 @@ client.on('interactionCreate', async interaction => {
 
     if(typeof amount === 'number'){
       let worth = amount * price;
-      price = (price < 0.10) ? price.toFixed(4) : price.toFixed(2);
 
       const embed = new Discord.MessageEmbed()
       .setColor("ORANGE")
       .setTitle(crypto + " calculator")
       .setThumbnail("https://cryptobal.info/images/cryptos/" + crypto + ".png")
       .setURL("https://cryptobal.info")
-      .setDescription(amount + " " + crypto + " = **$" + worth.toFixed(2) +"**")
+      .setDescription(amount + " " + crypto + " = **" + dollarUS.format(worth) + "**")
       .setTimestamp(new Date());
 
       let jsonE = { embeds: [ embed ], ephemeral: true };
@@ -276,7 +290,7 @@ client.on('interactionCreate', async interaction => {
       .setTitle(crypto + " calculator")
       .setThumbnail("https://cryptobal.info/images/cryptos/" + crypto + ".png")
       .setURL("https://cryptobal.info")
-      .setDescription("$" + usd.toFixed(2) + " = **" + parseFloat(total.toFixed(8)) + " " + crypto + "**")
+      .setDescription(dollarUS.format(usd) + " = **" + parseFloat(total.toFixed(8)) + " " + crypto + "**")
       .setTimestamp(new Date());
 
       let jsonE = { embeds: [ embed ], ephemeral: true };
@@ -291,7 +305,7 @@ client.on('interactionCreate', async interaction => {
       .setTitle(crypto + " calculator")
       .setThumbnail("https://cryptobal.info/images/cryptos/" + crypto + ".png")
       .setURL("https://cryptobal.info")
-      .setDescription(eur.toFixed(2) + "€ = **" + parseFloat(total.toFixed(8)) + " " + crypto + "**")
+      .setDescription(euroGerman.format(eur) + " = **" + parseFloat(total.toFixed(8)) + " " + crypto + "**")
       .setTimestamp(new Date());
 
       let jsonE = { embeds: [ embed ], ephemeral: true };
@@ -306,7 +320,7 @@ client.on('interactionCreate', async interaction => {
       .setTitle(crypto + " calculator")
       .setThumbnail("https://cryptobal.info/images/cryptos/" + crypto + ".png")
       .setURL("https://cryptobal.info")
-      .setDescription("£" + gbp.toFixed(2) + " = **" + parseFloat(total.toFixed(8)) + " " + crypto + "**")
+      .setDescription(britishPound.format(gbp) + " = **" + parseFloat(total.toFixed(8)) + " " + crypto + "**")
       .setTimestamp(new Date());
 
       let jsonE = { embeds: [ embed ], ephemeral: true };
@@ -315,14 +329,12 @@ client.on('interactionCreate', async interaction => {
       return;
     }
 
-    price = (price < 0.10) ? price.toFixed(4) : price.toFixed(2);
-
     const embed = new Discord.MessageEmbed()
     .setColor("ORANGE")
     .setTitle(crypto + " price")
     .setThumbnail("https://cryptobal.info/images/cryptos/" + crypto + ".png")
     .setURL("https://cryptobal.info")
-    .setDescription("**$" + price +"**")
+    .setDescription("**" + dollarUS.format(price) +"**")
     .setTimestamp(new Date());
 
     let jsonE = { embeds: [ embed ], ephemeral: true };
