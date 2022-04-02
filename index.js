@@ -12,7 +12,10 @@ var prices = new Map();
 
 var fiat = {
   "EUR": 1.10,
-  "GBP": 1.31
+  "GBP": 1.31,
+  "CNY": 0.16,
+  "JPY": 0.0082,
+  "INR": 0.013
 }
 
 let dollarUS = Intl.NumberFormat("en-US", {
@@ -28,6 +31,21 @@ let euroGerman = Intl.NumberFormat("de-DE", {
 let britishPound = Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "GBP",
+});
+
+let chineseYuan = Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "CNY",
+});
+
+let japaneseYen = Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "JPY",
+});
+
+let indianRupee = Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "INR",
 });
 
 var whitelist = [];
@@ -153,6 +171,24 @@ client.on('ready', () => {
               description: 'Calculate how many ' + crypto + ' assets you get from a specific amount of British Pounds',
               required: false,
               type: Discord.Constants.ApplicationCommandOptionTypes.NUMBER
+            },
+            {
+              name: 'cny',
+              description: 'Calculate how many ' + crypto + ' assets you get from a specific amount of Chinese Yuan',
+              required: false,
+              type: Discord.Constants.ApplicationCommandOptionTypes.NUMBER
+            },
+            {
+              name: 'jpy',
+              description: 'Calculate how many ' + crypto + ' assets you get from a specific amount of Japanese Yen',
+              required: false,
+              type: Discord.Constants.ApplicationCommandOptionTypes.NUMBER
+            },
+            {
+              name: 'inr',
+              description: 'Calculate how many ' + crypto + ' assets you get from a specific amount of Indian Rupee',
+              required: false,
+              type: Discord.Constants.ApplicationCommandOptionTypes.NUMBER
             }
           ]
         },
@@ -266,6 +302,9 @@ client.on('interactionCreate', async interaction => {
     let usd = interaction.options.getNumber("usd");
     let eur = interaction.options.getNumber("eur");
     let gbp = interaction.options.getNumber("gbp");
+    let cny = interaction.options.getNumber("cny");
+    let jpy = interaction.options.getNumber("jpy");
+    let inr = interaction.options.getNumber("inr");
 
     if(typeof amount === 'number'){
       let worth = amount * price;
@@ -321,6 +360,51 @@ client.on('interactionCreate', async interaction => {
       .setThumbnail("https://cryptobal.info/images/cryptos/" + crypto + ".png")
       .setURL("https://cryptobal.info")
       .setDescription(britishPound.format(gbp) + " = **" + parseFloat(total.toFixed(8)) + " " + crypto + "**")
+      .setTimestamp(new Date());
+
+      let jsonE = { embeds: [ embed ], ephemeral: true };
+      if(whitelist.includes(interaction.channel.id)) jsonE = { embeds: [ embed ], ephemeral: false };
+      interaction.reply(jsonE);
+      return;
+    }else if(typeof cny === 'number'){
+      let total = (1.0 / price) * cny * fiat.CNY;
+
+      const embed = new Discord.MessageEmbed()
+      .setColor("ORANGE")
+      .setTitle(crypto + " calculator")
+      .setThumbnail("https://cryptobal.info/images/cryptos/" + crypto + ".png")
+      .setURL("https://cryptobal.info")
+      .setDescription(chineseYuan.format(cny) + " = **" + parseFloat(total.toFixed(8)) + " " + crypto + "**")
+      .setTimestamp(new Date());
+
+      let jsonE = { embeds: [ embed ], ephemeral: true };
+      if(whitelist.includes(interaction.channel.id)) jsonE = { embeds: [ embed ], ephemeral: false };
+      interaction.reply(jsonE);
+      return;
+    }else if(typeof jpy === 'number'){
+      let total = (1.0 / price) * jpy * fiat.JPY;
+
+      const embed = new Discord.MessageEmbed()
+      .setColor("ORANGE")
+      .setTitle(crypto + " calculator")
+      .setThumbnail("https://cryptobal.info/images/cryptos/" + crypto + ".png")
+      .setURL("https://cryptobal.info")
+      .setDescription(japaneseYen.format(jpy) + " = **" + parseFloat(total.toFixed(8)) + " " + crypto + "**")
+      .setTimestamp(new Date());
+
+      let jsonE = { embeds: [ embed ], ephemeral: true };
+      if(whitelist.includes(interaction.channel.id)) jsonE = { embeds: [ embed ], ephemeral: false };
+      interaction.reply(jsonE);
+      return;
+    }else if(typeof inr === 'number'){
+      let total = (1.0 / price) * inr * fiat.INR;
+
+      const embed = new Discord.MessageEmbed()
+      .setColor("ORANGE")
+      .setTitle(crypto + " calculator")
+      .setThumbnail("https://cryptobal.info/images/cryptos/" + crypto + ".png")
+      .setURL("https://cryptobal.info")
+      .setDescription(indianRupee.format(inr) + " = **" + parseFloat(total.toFixed(8)) + " " + crypto + "**")
       .setTimestamp(new Date());
 
       let jsonE = { embeds: [ embed ], ephemeral: true };
