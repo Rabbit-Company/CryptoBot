@@ -24,4 +24,6 @@ All 2500+ cryptocurrencies and 160+ fiat currencies provided by [RabbitForexAPI]
 
 ## Images
 
-![CryptoBot](https://i.imgur.com/6ZkiNFw.png)
+![CryptoBot](https://cdn.rabbit-company.com/cryptobot/example.png)
+![CryptoBot-Convertion](https://cdn.rabbit-company.com/cryptobot/example3.png)
+![CryptoBot-Donation](https://cdn.rabbit-company.com/cryptobot/example2.png)
