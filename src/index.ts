@@ -13,6 +13,7 @@ import { FiatService } from "./services/fiat.ts";
 import { UserService } from "./services/users.ts";
 import { WhitelistService } from "./services/whitelist.ts";
 import { errorEmbed } from "./utils/embeds.ts";
+import { BotList, DiscordBotListCom, DiscordExtremeListXyz, DiscordsCom, StatsPoster, TopGG } from "@rabbit-company/discord-bot-list-sync";
 
 const db = openDatabase("./data/cryptobot.db");
 const whitelistService = new WhitelistService(db);
@@ -24,6 +25,17 @@ const conversionService = new ConversionService(cryptoService, fiatService);
 const client = new Client({
 	intents: [GatewayIntentBits.Guilds],
 });
+
+function getBotList(): BotList[] {
+	const list: BotList[] = [];
+
+	if (process.env.token_topgg) list.push(new TopGG({ token: process.env.token_topgg }));
+	if (process.env.token_discords) list.push(new DiscordsCom({ token: process.env.token_discords }));
+	if (process.env.token_discordbotlist) list.push(new DiscordBotListCom({ token: process.env.token_discordbotlist }));
+	if (process.env.token_discordextremelist) list.push(new DiscordExtremeListXyz({ token: process.env.token_discordextremelist }));
+
+	return list;
+}
 
 client.once(Events.ClientReady, async (readyClient) => {
 	Logger.info("Logged in as " + readyClient.user.tag);
@@ -42,6 +54,28 @@ client.once(Events.ClientReady, async (readyClient) => {
 		Logger.info(`Registered ${registered.size} ${guild ? "guild" : "global"} slash commands`);
 	} catch (err: any) {
 		Logger.error(`Failed to register slash commands: ${err?.message ?? err}`);
+	}
+
+	const botList = getBotList();
+	if (botList.length) {
+		const poster = new StatsPoster({
+			botId: client.user?.id,
+			interval: 10 * 60 * 1000, // 10 min
+			getStats: () => ({
+				guildCount: client.guilds.cache.size,
+				userCount: client.guilds.cache.reduce((acc, g) => acc + (g.memberCount ?? 0), 0),
+				shardCount: client.shard?.count ?? 1,
+			}),
+			lists: botList,
+			onPost(list, stats) {
+				Logger.debug(`[stats] posted ${stats.guildCount} guilds to ${list.name}`);
+			},
+			onError(list, error) {
+				Logger.error(`[stats] failed to post to ${list.name}:`, { error });
+			},
+		});
+
+		poster.start();
 	}
 
 	startHourlyTasks();
@@ -96,46 +130,9 @@ function setPresence(): void {
 	client.user?.setPresence({ status: "online", activities: [{ name: client.guilds.cache.size + " servers", type: ActivityType.Watching }] });
 }
 
-function updateVotingSites(): void {
-	if (!client.user) return;
-
-	const params = new URLSearchParams();
-	params.append("server_count", String(client.guilds.cache.size));
-
-	if (process.env.token_topgg) post("https://top.gg/api/bots/" + client.user.id + "/stats", process.env.token_topgg, params);
-	if (process.env.token_discords) post("https://discords.com/bots/api/bot/" + client.user.id, process.env.token_discords, params);
-
-	const params2 = new URLSearchParams();
-	params2.append("guilds", String(client.guilds.cache.size));
-	params2.append("users", String(client.users.cache.size));
-
-	if (process.env.token_discordbotlist) post("https://discordbotlist.com/api/v1/bots/" + client.user.id + "/stats", process.env.token_discordbotlist, params2);
-
-	if (process.env.token_discordextremelist) {
-		fetch("https://api.discordextremelist.xyz/v2/bot/" + client.user.id + "/stats", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: String(process.env.token_discordextremelist),
-			},
-			body: JSON.stringify({ guildCount: client.guilds.cache.size }),
-		}).catch((err) => Logger.debug(`Voting site update failed: ${err?.message ?? err}`));
-	}
-}
-
-function post(url: string, token: string | undefined, body: URLSearchParams): void {
-	if (!token) return;
-	fetch(url, {
-		method: "POST",
-		headers: { Authorization: token },
-		body,
-	}).catch((err) => Logger.debug(`Voting site update failed (${url}): ${err?.message ?? err}`));
-}
-
 function startHourlyTasks(): void {
 	setInterval(() => {
 		setPresence();
-		updateVotingSites();
 		Logger.verbose("Hourly tasks executed");
 	}, 3600000);
 }
