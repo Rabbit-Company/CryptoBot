@@ -13,7 +13,17 @@ import { FiatService } from "./services/fiat.ts";
 import { UserService } from "./services/users.ts";
 import { WhitelistService } from "./services/whitelist.ts";
 import { errorEmbed } from "./utils/embeds.ts";
-import { BotList, DiscordBotListCom, DiscordExtremeListXyz, DiscordsCom, StatsPoster, TopGG } from "@rabbit-company/discord-bot-list-sync";
+import {
+	BotList,
+	DiscordBotListCom,
+	DiscordExtremeListXyz,
+	DiscordsCom,
+	DisqInk,
+	DlistSpace,
+	RadarcordNet,
+	StatsPoster,
+	TopGG,
+} from "@rabbit-company/discord-bot-list-sync";
 
 const db = openDatabase("./data/cryptobot.db");
 const whitelistService = new WhitelistService(db);
@@ -33,6 +43,9 @@ function getBotList(): BotList[] {
 	if (process.env.token_discords) list.push(new DiscordsCom({ token: process.env.token_discords }));
 	if (process.env.token_discordbotlist) list.push(new DiscordBotListCom({ token: process.env.token_discordbotlist }));
 	if (process.env.token_discordextremelist) list.push(new DiscordExtremeListXyz({ token: process.env.token_discordextremelist }));
+	if (process.env.token_radarcord) list.push(new RadarcordNet({ token: process.env.token_radarcord }));
+	if (process.env.token_disqink) list.push(new DisqInk({ token: process.env.token_disqink }));
+	if (process.env.token_dlistspace) list.push(new DlistSpace({ token: process.env.token_dlistspace }));
 
 	return list;
 }
