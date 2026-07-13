@@ -25,6 +25,18 @@ export async function handleAddress(interaction: ChatInputCommandInteraction, co
 			return;
 		}
 
+		if (!users.hasAddress(interaction.user.id, symbol) && users.getAddresses(interaction.user.id).length >= 25) {
+			await interaction.reply(
+				ephemeral(
+					errorEmbed(
+						"**You have reached the maximum of 25 donation addresses.**\nRemove one with **/address remove** before adding a new one.",
+						thumbnailFor(symbol),
+					),
+				),
+			);
+			return;
+		}
+
 		users.setAddress(interaction.user.id, symbol, address);
 		await interaction.reply(ephemeral(successEmbed(`**${symbol} donation address has been set successfully.**`, thumbnailFor(symbol))));
 		return;
@@ -50,10 +62,21 @@ export async function handleAddress(interaction: ChatInputCommandInteraction, co
 		const embed = baseEmbed("Your donation addresses");
 
 		if (addresses.length === 0) {
-			embed.setDescription("You haven't set any donation addresses yet. Use **/address set** to add one.");
+			embed.setDescription(
+				"You haven't set any donation addresses yet.\n\nAdd one with **/address set** — it will then show up when someone runs **/donate** on you.",
+			);
 		} else {
-			embed.setDescription("These addresses are shown to anyone who runs **/donate** on you.");
-			embed.addFields(addresses.slice(0, 25).map(({ symbol, address }) => ({ name: symbol, value: address, inline: false })));
+			embed.setDescription(
+				`You have **${addresses.length}/25** ${addresses.length === 1 ? "address" : "addresses"} set. These are shown to anyone who runs **/donate** on you.`,
+			);
+			embed.addFields(
+				addresses.slice(0, 25).map(({ symbol, address }) => ({
+					name: symbol,
+					value: `\`\`\`${address}\`\`\``,
+					inline: false,
+				})),
+			);
+			embed.setFooter({ text: "Tap an address to copy it" });
 		}
 
 		await interaction.reply(ephemeral(embed));
@@ -72,14 +95,27 @@ export async function handleDonate(interaction: ChatInputCommandInteraction, use
 		Logger.debug(`Could not fetch accent color for user ${user.id}: ${err?.message ?? err}`);
 	}
 
-	const embed = new EmbedBuilder().setColor(color).setTitle(user.displayName).setThumbnail(user.displayAvatarURL()).setTimestamp(new Date());
+	const embed = new EmbedBuilder()
+		.setColor(color)
+		.setAuthor({ name: `Donate to ${user.displayName}`, iconURL: user.displayAvatarURL() })
+		.setThumbnail(user.displayAvatarURL({ size: 256 }))
+		.setTimestamp(new Date());
 
 	const addresses = users.getAddresses(user.id);
 	if (addresses.length > 0) {
-		embed.setDescription(`Those crypto addresses are owned by **${user.username}**`);
-		embed.addFields(addresses.slice(0, 25).map(({ symbol, address }) => ({ name: symbol, value: address, inline: false })));
+		embed.setDescription(`**${user.username}** accepts donations in **${addresses.length}** ${addresses.length === 1 ? "currency" : "currencies"}:`);
+		embed.addFields(
+			addresses.slice(0, 25).map(({ symbol, address }) => ({
+				name: `${symbol}`,
+				value: `\`\`\`${address}\`\`\``,
+				inline: false,
+			})),
+		);
+		embed.setFooter({ text: "Tap an address to copy it • Always verify before sending" });
 	} else {
-		embed.setDescription(`**${user.username}** did not set their crypto addresses for donations. Make sure to remind them.`);
+		embed.setDescription(
+			`**${user.username}** hasn't set up a donation list yet.\n\nThey can add addresses with **/address set** - feel free to give them a nudge. 🙂`,
+		);
 	}
 
 	await interaction.reply(replyOptions(interaction, whitelist, embed));

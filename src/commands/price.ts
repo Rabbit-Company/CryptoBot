@@ -22,9 +22,16 @@ export async function handlePrice(interaction: ChatInputCommandInteraction, conv
 
 	const embed = baseEmbed(amount === 1 ? `${symbol} price` : `${symbol} calculator`, thumbnailFor(symbol));
 	if (amount === 1) {
-		embed.setDescription(`**${formatFiat(value, currency)}**`);
+		embed.setDescription(
+			[`# ${formatFiat(value, currency)}`, `-# 1 ${currency} = ${formatCrypto(conversion.convert(1, currency, symbol), symbol)}`].join("\n"),
+		);
 	} else {
-		embed.setDescription(`${formatCrypto(amount, symbol)} = **${formatFiat(value, currency)}**`);
+		embed.setDescription(
+			[
+				`# ${formatCrypto(amount, symbol)} = ${formatFiat(value, currency)}`,
+				`-# 1 ${symbol} = ${formatFiat(conversion.getPrice(symbol, currency), currency)}`,
+			].join("\n"),
+		);
 	}
 	staleness(embed, conversion.getAgeSeconds());
 
@@ -49,7 +56,10 @@ export async function handleConvert(interaction: ChatInputCommandInteraction, co
 	const thumbnail = conversion.isCrypto(from) ? thumbnailFor(from) : conversion.isCrypto(to) ? thumbnailFor(to) : undefined;
 
 	const embed = baseEmbed(`${from} → ${to}`, thumbnail).setDescription(
-		`${formatAmount(amount, from, conversion.isFiat(from))} = **${formatAmount(value, to, conversion.isFiat(to))}**`,
+		[
+			`# ${formatAmount(amount, from, conversion.isFiat(from))} = ${formatAmount(value, to, conversion.isFiat(to))}`,
+			`-# 1 ${from} = ${formatAmount(conversion.getPrice(from, to), to, conversion.isFiat(to))}`,
+		].join("\n"),
 	);
 	staleness(embed, conversion.getAgeSeconds());
 
