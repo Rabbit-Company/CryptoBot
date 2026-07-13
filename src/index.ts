@@ -16,6 +16,7 @@ import { errorEmbed } from "./utils/embeds.ts";
 import {
 	BotList,
 	DiscordBotListCom,
+	DiscordBotsGG,
 	DiscordExtremeListXyz,
 	DiscordsCom,
 	DisqInk,
@@ -46,6 +47,7 @@ function getBotList(): BotList[] {
 	if (process.env.token_radarcord) list.push(new RadarcordNet({ token: process.env.token_radarcord }));
 	if (process.env.token_disqink) list.push(new DisqInk({ token: process.env.token_disqink }));
 	if (process.env.token_dlistspace) list.push(new DlistSpace({ token: process.env.token_dlistspace }));
+	if (process.env.token_discordbotsgg) list.push(new DiscordBotsGG({ token: process.env.token_discordbotsgg }));
 
 	return list;
 }

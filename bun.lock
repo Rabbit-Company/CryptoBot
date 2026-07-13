@@ -5,7 +5,7 @@
     "": {
       "name": "cryptobot",
       "dependencies": {
-        "@rabbit-company/discord-bot-list-sync": "^0.2.0",
+        "@rabbit-company/discord-bot-list-sync": "^0.3.0",
         "@rabbit-company/logger": "^5.6.1",
         "discord.js": "^14.26.5",
       },
@@ -28,7 +28,7 @@
 
     "@discordjs/ws": ["@discordjs/ws@1.2.3", "", { "dependencies": { "@discordjs/collection": "^2.1.0", "@discordjs/rest": "^2.5.1", "@discordjs/util": "^1.1.0", "@sapphire/async-queue": "^1.5.2", "@types/ws": "^8.5.10", "@vladfrangu/async_event_emitter": "^2.2.4", "discord-api-types": "^0.38.1", "tslib": "^2.6.2", "ws": "^8.17.0" } }, "sha512-wPlQDxEmlDg5IxhJPuxXr3Vy9AjYq5xCvFWGJyD7w7Np8ZGu+Mc+97LCoEc/+AYCo2IDpKioiH0/c/mj5ZR9Uw=="],
 
-    "@rabbit-company/discord-bot-list-sync": ["@rabbit-company/discord-bot-list-sync@0.2.0", "", {}, "sha512-UVAEviQlWsp5Gj/GIOZYFKlbbBGs63CMLEUvHuZDUJJjQFSYGt5cMdT3MVCjeNo7H/XLMtZLwSiyKRR7oYPM8g=="],
+    "@rabbit-company/discord-bot-list-sync": ["@rabbit-company/discord-bot-list-sync@0.3.0", "", {}, "sha512-JUNte1oX4MWpTeDQvJodH0S0cmV+Eo4rara8t54puhCPnm8xg5wtxb6waHZb1nDCUngrOmXl0S0Rb2oj3TYuDw=="],
 
     "@rabbit-company/logger": ["@rabbit-company/logger@5.6.1", "", { "peerDependencies": { "typescript": "^5.9.3" } }, "sha512-U/OvLzzkHgTUupgeMsnBHjJVbFfVIt4Nj643rraq/mKpIEmGUVsUGJi1Gin2Tw95vJ8pB/kNYVxtZi9FKO+mIw=="],
 

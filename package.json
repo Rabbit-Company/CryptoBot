@@ -14,7 +14,7 @@
 	"author": "Rabbit Company LLC",
 	"license": "GPL-3.0",
 	"dependencies": {
-		"@rabbit-company/discord-bot-list-sync": "^0.2.2",
+		"@rabbit-company/discord-bot-list-sync": "^0.3.0",
 		"@rabbit-company/logger": "^5.6.1",
 		"discord.js": "^14.26.5"
 	},
