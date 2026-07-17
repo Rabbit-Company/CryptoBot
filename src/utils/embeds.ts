@@ -4,59 +4,9 @@ import type { WhitelistService } from "../services/whitelist.ts";
 export const WEBSITE = "https://cryptobal.info";
 export const LOGO = "https://cryptobal.info/images/logo.png";
 
-/**
- * Symbols that have an icon uploaded to cryptobal.info. Everything else falls
- * back to the bot logo so embeds never contain a broken image.
- */
-const KNOWN_ICONS = new Set([
-	"BTC",
-	"COMP",
-	"DOGE",
-	"EOS",
-	"LINK",
-	"MKR",
-	"STORJ",
-	"TRX",
-	"YFI",
-	"AAVE",
-	"ATOM",
-	"BAT",
-	"DASH",
-	"DOT",
-	"ETC",
-	"IOTA",
-	"MATIC",
-	"XEM",
-	"XRP",
-	"ZEC",
-	"ADA",
-	"BCH",
-	"EGLD",
-	"ETH",
-	"LTC",
-	"NEO",
-	"RVN",
-	"UNI",
-	"XLM",
-	"XTZ",
-	"ZIL",
-	"ALGO",
-	"AVAX",
-	"BNB",
-	"ENJ",
-	"FIL",
-	"LUNA",
-	"SOL",
-	"THETA",
-	"VET",
-	"XMR",
-	"ZRX",
-]);
-
 export function thumbnailFor(symbol: string): string {
 	const upper = symbol.toUpperCase();
-	if (KNOWN_ICONS.has(upper)) return `https://cryptobal.info/images/cryptos/${upper}.png`;
-	return LOGO;
+	return `https://cdn.rabbit-company.com/crypto/2048x2048/${upper}.avif`;
 }
 
 export function baseEmbed(title: string, thumbnail: string = LOGO): EmbedBuilder {
